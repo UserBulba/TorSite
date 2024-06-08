@@ -25,7 +25,7 @@ services:
 
   tor:
     # TODO: add tag and allow to remove image in shutdown script
-    image: tor
+    image: tor:${TAG:-dev}
     container_name: tor
     profiles:
       - tor
@@ -48,7 +48,7 @@ services:
 
   nginx:
     # TODO: add tag and allow to remove image in shutdown script
-    image: nginx:${version:-dev}
+    image: nginx:${TAG:-dev}
     container_name: nginx
     profiles:
       - tor

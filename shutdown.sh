@@ -3,11 +3,12 @@ set -e  # Exit on error
 
 # Define default project name
 PROJECT_NAME="tor"
+TAG="octo"
 REMOVE_IMAGE=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    -remove|--remove-image)
+    -remove|--remove-images)
       REMOVE_IMAGE=true
       ;;
     -p|--project)
@@ -41,16 +42,17 @@ else
     exit 1
 fi
 
-# TODO: Enable to remove images used by the services
-# Optionally remove nginx image
+# Optionally remove project images
 if [ "$REMOVE_IMAGE" = true ]; then
-  echo "Removing images..."
-  IMAGE_ID=$(docker images -q nginx)
-  if [ -n "$IMAGE_ID" ]; then
-    docker rmi $IMAGE_ID
-    echo "Images removed."
+  echo "Searching for images with tag: $TAG..."
+  IMAGE_IDS=$(docker images | grep "$TAG" | awk '{print $3}')
+
+  if [ -z "$IMAGE_IDS" ]; then
+    echo "No images found with tag: $TAG."
   else
-    echo "No nginx image found to remove."
+    echo "Removing images..."
+    echo "$IMAGE_IDS" | xargs -r docker rmi -f
+    echo "Images with tag: $TAG removed."
   fi
 fi
 
