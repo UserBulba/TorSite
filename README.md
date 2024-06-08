@@ -31,3 +31,11 @@ sudo ./shutdown.sh -p tor -remove
 # Replace [domain] with string of your choice, rather short like your name or nick, whatever.
 docker run --volume ./domain:/root/mkp224o ghcr.io/vansergen/mkp224o -B -S 5 -t 5 -n 1 [domain]
 ```
+
+## OnionScan
+
+To scan your .onion domain, use OnionScan:
+
+```bash
+./onionscan/startup.sh [domain]
+```

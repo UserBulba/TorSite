@@ -32,5 +32,8 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 # Make the script executable
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Run Tor (non-daemon mode)
+USER tor
+
 # Set the script as the entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
