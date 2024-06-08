@@ -12,6 +12,15 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
+# Check if the directory exists
+if [ ! -d "$DIRECTORY" ]; then
+    echo "Directory does not exist: $DIRECTORY"
+    echo "Attempting to create directory..."
+    mkdir -p "$DIRECTORY" && echo "Directory created successfully." || echo "Failed to create directory."
+else
+    echo "Directory already exists: $DIRECTORY"
+fi
+
 echo "Setting up directories..."
 
 if [ -d "$DIRECTORY" ]; then

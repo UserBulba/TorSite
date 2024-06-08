@@ -4,12 +4,14 @@
 
 ## Description
 
-This project is a simple example of how to create a Tor hidden service website.
-It uses Nginx as a web server and Tor as a proxy to access the website.
+This repository contains a Dockerized solution for hosting a hidden website using Nginx, Hugo, and Tor.
 
 ## Installation
 
-```
+use makefile to 'build' the project
+
+```bash
+make
 ```
 
 ## Usage
@@ -21,9 +23,6 @@ sudo ./startup.sh -p tor
 sudo ./shutdown.sh -p tor -remove
 ```
 
-```bash
-
-```
 
 ## Generating .onion domain
 
