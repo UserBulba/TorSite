@@ -1,0 +1,24 @@
+#####################################################################
+
+# Use the latest Alpine image
+FROM alpine:3.20.0
+
+LABEL maintainer="Piotr K."
+LABEL version="1.0"
+LABEL description=""
+LABEL vendor=""
+
+# Install Tor
+RUN apk add --no-cache tor=0.4.8.11-r0
+
+# Create and set the Tor data directory
+RUN mkdir -p /var/lib/tor/hidden_service
+
+# The VOLUME directive can point specifically to the hidden service directory
+VOLUME /var/lib/tor/hidden_service/
+
+# Run Tor (non-daemon mode)
+USER tor
+
+# Run tor with the custom configuration
+CMD ["tor", "-f", "/etc/tor/torrc"]

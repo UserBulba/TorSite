@@ -1,0 +1,18 @@
+## Configuration file for a Tor hidden service
+
+## Set the log to notice level to the standard output
+Log notice stdout
+
+## Define the location where Tor will store information about your hidden service.
+## The directory must be writable by the Tor process.
+DataDirectory /var/lib/tor
+
+## Hidden Service Configuration
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 unix:/run/app/sock
+
+## Disable SOCKS proxy; not needed for a hidden service only setup.
+SocksPort 0
+
+## Avoid running as an exit relay
+ExitRelay 0

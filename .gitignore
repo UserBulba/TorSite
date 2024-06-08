@@ -1,0 +1,21 @@
+# Exclude all files in the domain directory
+domain/*
+# Exclude all files in the shared directory
+shared/*
+
+# Log files
+*.log
+
+# env
+env
+.env
+venv
+
+# VSC
+.vscode
+
+# Data
+data
+
+# Wireguard
+**/wireguard.conf

@@ -1,0 +1,5 @@
+SOCKSPort 9050 # Enable SOCKS proxy on localhost:9050
+Log notice stdout
+ControlPort 9051
+CookieAuthentication 0
+DisableDebuggerAttachment 0

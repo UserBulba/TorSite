@@ -1,0 +1,104 @@
+---
+version: '3'
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  init-permissions:
+    image: alpine:latest
+    container_name: init-permissions
+    profiles:
+      - tor
+    volumes:
+      - ./domain:/var/lib/tor/hidden_service
+      - ./shared:/run/app
+    command: |
+      sh -c "
+      chown -R 100:100 /var/lib/tor/hidden_service && \
+      chmod 700 /var/lib/tor/hidden_service && \
+      chown -R 100:100 /run/app && \
+      chmod 700 /run/app
+      "
+    networks:
+      - internal
+
+  tor:
+    # TODO: add tag and allow to remove image in shutdown script
+    image: tor
+    container_name: tor
+    profiles:
+      - tor
+    build:
+      context: .
+      dockerfile: Dockerfile.tor
+    volumes:
+      - ./domain:/var/lib/tor/hidden_service
+      # - ./conf/torrc:/etc/tor/torrc:ro
+      - ./shared:/run/app/
+    configs:
+      - source: torrc
+        target: /etc/tor/torrc
+    networks:
+      - internal
+      - external
+    depends_on:
+      - init-permissions
+    <<: *restart
+
+  nginx:
+    # TODO: add tag and allow to remove image in shutdown script
+    image: nginx:${version:-dev}
+    container_name: nginx
+    profiles:
+      - tor
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+      args:
+        - HUGO_BASEURL=http://localhost:80
+        - NGINX_VERSION=1.25.3
+    volumes:
+      - ./shared:/run/app/
+    depends_on:
+      - tor
+    <<: *restart
+
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard
+    profiles:
+      - vpn
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    # configs:
+    #   - source: wireguard
+    #     target: /config/wg_confs/wireguard.conf
+    volumes:
+      - ./conf/wireguard.conf:/config/wg_confs/wireguard.conf
+    ports:
+      - 51820:51820/udp
+    networks:
+      - external
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    <<: *restart
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+
+  external:
+    driver: bridge
+    internal: false
+
+configs:
+  torrc:
+    file: ./conf/torrc
+  wireguard:
+    file: ./conf/wireguard.conf

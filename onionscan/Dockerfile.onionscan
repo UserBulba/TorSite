@@ -1,0 +1,36 @@
+#####################################################################
+
+# Use the Go Alpine image
+FROM golang:alpine
+
+LABEL maintainer="Piotr K."
+LABEL version="1.0"
+LABEL description=""
+LABEL vendor=""
+
+# Install Tor, git for go get, and necessary build tools
+RUN apk add --no-cache \
+    tor=0.4.8.11-r0 \
+    git=2.45.2-r0 \
+    gcc=13.2.1_git20240309-r0 \
+    musl-dev=1.2.5-r0 \
+    libexif-dev=0.6.24-r2 \
+    curl=8.7.1-r0
+
+# Install OnionScan
+RUN go install github.com/CypherpunkSamurai/onionscan@latest
+
+# Add a Tor configuration file
+COPY torrc /etc/tor/torrc
+
+# Set the PATH to include the go bin directory
+ENV PATH="/root/go/bin:${PATH}"
+
+# Copy the entrypoint script into the container
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set the script as the entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

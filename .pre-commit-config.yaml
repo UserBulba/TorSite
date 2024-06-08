@@ -1,0 +1,28 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        name: Check Yaml
+      - id: end-of-file-fixer
+        name: End of File Fixer
+      - id: trailing-whitespace
+        name: Trailing Whitespace
+
+  - repo: https://github.com/iamthefij/docker-pre-commit
+    rev: v3.0.1
+    hooks:
+      - id: docker-compose-check
+
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+      - id: dockerfilelint
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        args:
+          - --ignore=DL3059

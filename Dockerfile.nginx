@@ -1,0 +1,75 @@
+ARG VERSION=alpine
+FROM nginx:${VERSION} as builder
+
+ENV MORE_HEADERS_VERSION=0.37
+ENV MORE_HEADERS_GITREPO=openresty/headers-more-nginx-module
+
+# Download sources
+RUN wget -q "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.tar.gz && \
+    wget -q "https://github.com/${MORE_HEADERS_GITREPO}/archive/v${MORE_HEADERS_VERSION}.tar.gz" -O extra_module.tar.gz
+
+# For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
+RUN  apk add --no-cache --virtual .build-deps \
+    gcc=13.2.1_git20231014-r0 \
+    libc-dev=0.7.2-r5 \
+    make=4.4.1-r2 \
+    openssl-dev=3.1.5-r0 \
+    pcre-dev=8.45-r3 \
+    zlib-dev=1.3.1-r0 \
+    linux-headers=6.5-r0 \
+    libxslt-dev=1.1.39-r0 \
+    gd-dev=2.3.3-r8 \
+    geoip-dev=1.6.12-r5 \
+    perl-dev=5.38.2-r0 \
+    libedit-dev=20230828.3.1-r3 \
+    mercurial=6.6-r0 \
+    bash=5.2.21-r0 \
+    alpine-sdk=1.0-r1 \
+    findutils=4.9.0-r5
+
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+RUN rm -rf /usr/src/nginx /usr/src/extra_module && mkdir -p /usr/src/nginx /usr/src/extra_module && \
+    tar -zxC /usr/src/nginx -f nginx.tar.gz && \
+    tar -xzC /usr/src/extra_module -f extra_module.tar.gz
+
+WORKDIR /usr/src/nginx/nginx-${NGINX_VERSION}
+
+
+# Reuse same cli arguments as the nginx:alpine image used to build
+RUN CONFARGS=$(nginx -V 2>&1 | sed -n -e 's/^.*arguments: //p') && \
+    sh -c "./configure --with-compat $CONFARGS --add-dynamic-module=/usr/src/extra_module/*" && make modules
+
+# Use the Hugo image to build the site
+FROM hugomods/hugo:exts as hugo
+
+# Base URL
+ARG HUGO_BASEURL=
+ENV HUGO_BASEURL=${HUGO_BASEURL}
+
+# Build site
+COPY ./hugo /src/
+RUN hugo --minify --enableGitInfo
+
+# Use the Nginx image
+FROM nginx:${VERSION}
+
+LABEL maintainer="Piotr K."
+LABEL version="1.0"
+LABEL description=""
+
+# Copy the generated files to keep the image as small as possible.
+COPY --from=builder /usr/src/nginx/nginx-${NGINX_VERSION}/objs/*_module.so /etc/nginx/modules/
+COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
+COPY --from=hugo /src/public /site
+
+# Remove default configuration and add our custom configurations
+RUN rm /etc/nginx/conf.d/default.conf
+COPY ./conf/nginx.conf /etc/nginx/nginx.conf
+COPY ./conf/hugo.conf /etc/nginx/conf.d/
+
+# Expose the directory to link with the Unix socket
+VOLUME /run/app/
+
+# Run Nginx
+CMD ["nginx", "-g", "daemon off;"]
