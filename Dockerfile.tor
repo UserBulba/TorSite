@@ -8,8 +8,35 @@ LABEL version="1.0"
 LABEL description=""
 LABEL vendor=""
 
+# Install Python
+RUN apk add --no-cache \
+    python3=3.12.3-r1 \
+    py3-pip=24.0-r2 \
+    py3-virtualenv=20.26.2-r0
+
+# Create a virtual environment
+RUN virtualenv /venv
+
+# Set the PATH to include the virtual environment
+ENV PATH="/venv/bin:${PATH}"
+
+# Install packages
+RUN /venv/bin/pip install \
+    nyx==2.1.0
+
+# Replace getargspec with getfullargspec
+#
+# As per Python 3.11 release notes, getargspec has been removed and replaced by getfullargspec.
+# Reference: https://docs.python.org/3.11/whatsnew/3.11.html#removed
+#
+# The nyx package uses getargspec and is no longer maintained. Therefore, I decided to replace
+# the function name instead of creating a new package or forking the project.
+#
+# Note: This entire project is for educational purposes and enjoyment.
+RUN find /venv/lib/python3.12/site-packages/nyx -type f -exec sed -i 's/getargspec/getfullargspec/g' {} \;
+
 # Install Tor
-RUN apk add --no-cache tor=0.4.8.11-r0
+RUN apk add --no-cache tor=0.4.8.12-r0
 
 # Create and set the Tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service
