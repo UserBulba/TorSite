@@ -1,3 +1,5 @@
+#####################################################################
+
 ARG VERSION=alpine
 FROM nginx:${VERSION} as builder
 
@@ -57,6 +59,7 @@ FROM nginx:${VERSION}
 LABEL maintainer="Piotr K."
 LABEL version="1.0"
 LABEL description=""
+LABEL vendor=""
 
 # Copy the generated files to keep the image as small as possible.
 COPY --from=builder /usr/src/nginx/nginx-${NGINX_VERSION}/objs/*_module.so /etc/nginx/modules/
