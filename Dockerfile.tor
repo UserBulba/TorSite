@@ -1,6 +1,6 @@
 #####################################################################
 
-# Use the latest Alpine image
+# Use the Alpine image
 FROM alpine:3.20.0
 
 LABEL maintainer="Piotr K."

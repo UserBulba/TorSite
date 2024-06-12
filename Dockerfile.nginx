@@ -1,8 +1,10 @@
 #####################################################################
 
+# Use the Nginx image to build the module
 ARG VERSION=alpine
 FROM nginx:${VERSION} as builder
 
+# Set the headers-more module version
 ENV MORE_HEADERS_VERSION=0.37
 ENV MORE_HEADERS_GITREPO=openresty/headers-more-nginx-module
 
