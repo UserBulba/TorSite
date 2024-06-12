@@ -10,5 +10,13 @@ if [ -z "$TOR_CONTAINER_ID" ]; then
   exit 1
 fi
 
-# Execute nyx inside the running container
-docker exec -it "$TOR_CONTAINER_ID" nyx
+# Execute nyx in the running container
+echo "=============================="
+echo "In the darkness of the Underworld, Nyx, the Night Incarnate, watches over..."
+echo "=============================="
+
+docker exec -it "$TOR_CONTAINER_ID" sh -c 'PYTHONWARNINGS="ignore:invalid escape sequence" nyx'
+
+echo "======================================"
+echo "The night recedes. Until next time, traveler."
+echo "======================================"
