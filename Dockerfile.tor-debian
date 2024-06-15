@@ -1,0 +1,51 @@
+# Use the official Debian base image
+FROM debian:bookworm
+
+LABEL maintainer="Piotr K."
+LABEL version="1.0"
+LABEL description=""
+LABEL vendor=""
+
+# Update the package list and install required packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3.11=3.11.2-6 \
+    python3-pip=23.0.1+dfsg-1 \
+    python3-venv=3.11.2-1+b1 \
+    tor=0.4.7.16-1 \
+    snowflake-client=2.5.1-1+b3 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+# Create a virtual environment
+RUN python3 -m venv /venv
+
+# Set the PATH to include the virtual environment
+ENV PATH="/venv/bin:${PATH}"
+
+# Install packages
+RUN /venv/bin/pip install \
+    nyx==2.1.0
+
+# Replace getargspec with getfullargspec
+#
+# As per Python 3.11 release notes, getargspec has been removed and replaced by getfullargspec.
+# Reference: https://docs.python.org/3.11/whatsnew/3.11.html#removed
+#
+# The nyx package uses getargspec and is no longer maintained. Therefore, I decided to replace
+# the function name instead of creating a new package or forking the project.
+#
+# Note: This entire project is for educational purposes and enjoyment.
+RUN find /venv/lib/python3.11/site-packages/nyx -type f -exec sed -i 's/getargspec/getfullargspec/g' {} \;
+
+# Create and set the Tor data directory
+RUN mkdir -p /var/lib/tor/hidden_service
+
+# The VOLUME directive can point specifically to the hidden service directory
+VOLUME /var/lib/tor/hidden_service/
+
+# Run Tor (non-daemon mode)
+USER debian-tor
+
+# Run tor with the custom configuration
+CMD ["tor", "-f", "/etc/tor/torrc"]

@@ -5,7 +5,7 @@ set -e  # Exit on error
 DIRECTORY="domain"
 # Define project name
 PROJECT_NAME=${1:-tor}
-
+DISTRIBUTION=${DISTRIBUTION:-alpine}
 # Check if the script is run as root
 if [ "$(id -u)" != "0" ]; then
     echo "This script must be run as root. Please use sudo."

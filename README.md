@@ -16,6 +16,8 @@
 
 This repository contains a Dockerized solution for hosting a hidden website using Nginx, Hugo, and Tor.
 
+> **Note**: This project contains two versions of images, Alpine and Debian. To switch between them, change the base image in `.env` file. The Alpine image is primarily used.
+
 ## Installation
 
 Use makefile to 'build' the project:

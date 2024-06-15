@@ -13,7 +13,6 @@ services:
     volumes:
       - ./domain:/var/lib/tor/hidden_service
       - ./shared:/run/app
-    # 100:100 is Alpine tor user, for Debian use debian-tor, 101:101.
     command: |
       sh -c "
       chown -R 100:100 /var/lib/tor/hidden_service && \
@@ -31,7 +30,7 @@ services:
       - tor
     build:
       context: .
-      dockerfile: Dockerfile.tor-alpine
+      dockerfile: Dockerfile.tor-${DISTRIBUTION:-alpine}
     volumes:
       - ./domain:/var/lib/tor/hidden_service
       - ./shared:/run/app/
@@ -80,6 +79,9 @@ services:
   watchtower:
     profiles:
       - proxy
+    networks:
+      - internal
+      - external
     image: containrrr/watchtower
     container_name: watchtower
     volumes:
