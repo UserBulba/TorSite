@@ -7,7 +7,7 @@ RUN apk add --no-cache \
     go=1.22.4-r0 \
     git=2.45.2-r0
 
-# Clone the Snowflake repository
+# Build the Snowflake client
 RUN git clone https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake.git
 WORKDIR /snowflake/client
 RUN go get && \
