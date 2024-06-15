@@ -13,6 +13,7 @@ services:
     volumes:
       - ./domain:/var/lib/tor/hidden_service
       - ./shared:/run/app
+    # 100:100 is Alpine tor user, for Debian use debian-tor, 101:101.
     command: |
       sh -c "
       chown -R 100:100 /var/lib/tor/hidden_service && \
@@ -30,10 +31,9 @@ services:
       - tor
     build:
       context: .
-      dockerfile: Dockerfile.tor
+      dockerfile: Dockerfile.tor-alpine
     volumes:
       - ./domain:/var/lib/tor/hidden_service
-      # - ./conf/torrc:/etc/tor/torrc:ro
       - ./shared:/run/app/
     configs:
       - source: torrc
@@ -62,6 +62,30 @@ services:
       - tor
     <<: *restart
 
+  snowflake-proxy:
+    profiles:
+      - proxy
+    # network_mode: host
+    networks:
+        internal:
+          ipv4_address: 172.18.0.5
+        external:
+
+    image: thetorproject/snowflake-proxy:latest
+    container_name: snowflake-proxy
+    restart: unless-stopped
+    command: ["-verbose", "-unsafe-logging", "-summary-interval", "1m"]
+    # command: [ "-ephemeral-ports-range", "30000:60000" ]
+
+  watchtower:
+    profiles:
+      - proxy
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: snowflake-proxy
+
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
@@ -89,6 +113,9 @@ services:
 networks:
   internal:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24
     internal: true
 
   external:
