@@ -20,6 +20,7 @@ CookieAuthentication 1
 
 # Snowflake Configuration
 UseBridges 1
+SocksPort 9050
 
 ClientTransportPlugin snowflake exec /usr/bin/snowflake-client -log /var/log/tor/snowflake.log
 
