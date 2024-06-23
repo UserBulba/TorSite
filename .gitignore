@@ -19,3 +19,6 @@ data
 
 # Wireguard
 **/wireguard.conf
+
+# Private build instructions ;)
+BUILD.md
