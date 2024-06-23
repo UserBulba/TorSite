@@ -39,7 +39,6 @@ RUN rm -rf /usr/src/nginx /usr/src/extra_module && mkdir -p /usr/src/nginx /usr/
 
 WORKDIR /usr/src/nginx/nginx-${NGINX_VERSION}
 
-
 # Reuse same cli arguments as the nginx:alpine image used to build
 RUN CONFARGS=$(nginx -V 2>&1 | sed -n -e 's/^.*arguments: //p') && \
     sh -c "./configure --with-compat $CONFARGS --add-dynamic-module=/usr/src/extra_module/*" && make modules
@@ -73,8 +72,16 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY ./conf/nginx.conf /etc/nginx/nginx.conf
 COPY ./conf/hugo.conf /etc/nginx/conf.d/
 
+# Ensure necessary directories and permissions
+RUN mkdir -p /var/cache/nginx /var/run/nginx /var/log/nginx && \
+    chown -R nginx:nginx /var/cache/nginx /var/run/nginx /var/log/nginx && \
+    chmod -R 775 /var/run/nginx
+
 # Expose the directory to link with the Unix socket
 VOLUME /run/app/
 
-# Run Nginx
+# Run as non-root user
+USER nginx
+
+# Set the entrypoint
 CMD ["nginx", "-g", "daemon off;"]
