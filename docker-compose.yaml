@@ -1,5 +1,4 @@
 ---
-version: '3'
 
 x-restart: &restart
   restart: unless-stopped
@@ -15,13 +14,19 @@ services:
       - ./shared:/run/app
     command: |
       sh -c "
-      chown -R 100:100 /var/lib/tor/hidden_service && \
+      chown -R 100:101 /var/lib/tor/hidden_service && \
       chmod 700 /var/lib/tor/hidden_service && \
-      chown -R 100:100 /run/app && \
-      chmod 700 /run/app
+      chown -R 100:101 /run/app && \
+      chmod 775 /run/app
       "
-    networks:
-      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
 
   tor:
     image: tor:${TAG:-dev}
@@ -43,6 +48,22 @@ services:
     depends_on:
       - init-permissions
     <<: *restart
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9050 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.octo.service=tor"
+      - "com.octo.version=${VERSION:-dev}"
 
   nginx:
     image: nginx:${TAG:-dev}
@@ -58,35 +79,25 @@ services:
     volumes:
       - ./shared:/run/app/
     depends_on:
-      - tor
+      tor:
+        condition: service_healthy
     <<: *restart
-
-  snowflake-proxy:
-    profiles:
-      - proxy
-    # network_mode: host
-    networks:
-        internal:
-          ipv4_address: 172.18.0.5
-        external:
-
-    image: thetorproject/snowflake-proxy:latest
-    container_name: snowflake-proxy
-    restart: unless-stopped
-    command: ["-verbose", "-unsafe-logging", "-summary-interval", "1m"]
-    # command: [ "-ephemeral-ports-range", "30000:60000" ]
-
-  watchtower:
-    profiles:
-      - proxy
-    networks:
-      - internal
-      - external
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: snowflake-proxy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -I --fail --unix-socket /run/app/sock http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.octo.service=nginx"
+      - "com.octo.version=${VERSION:-dev}"
 
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
@@ -99,18 +110,24 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-    # configs:
-    #   - source: wireguard
-    #     target: /config/wg_confs/wireguard.conf
     volumes:
       - ./conf/wireguard.conf:/config/wg_confs/wireguard.conf
     ports:
       - 51820:51820/udp
     networks:
+      - internal
       - external
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     <<: *restart
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
 
 networks:
   internal:
@@ -122,6 +139,9 @@ networks:
 
   external:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
     internal: false
 
 configs:
