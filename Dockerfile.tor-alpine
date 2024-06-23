@@ -52,8 +52,9 @@ RUN find /venv/lib/python3.12/site-packages/nyx -type f -exec sed -i 's/getargsp
 # Create and set the Tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service
 
-# The VOLUME directive can point specifically to the hidden service directory
+# Define the volumes
 VOLUME /var/lib/tor/hidden_service/
+VOLUME /run/app/
 
 # Copy the Snowflake binary
 COPY --from=builder /snowflake/client/client /usr/bin/snowflake-client
