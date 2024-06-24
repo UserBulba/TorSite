@@ -36,12 +36,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.tor-${DISTRIBUTION:-alpine}
+    environment:
+      - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
     volumes:
       - ./domain:/var/lib/tor/hidden_service
       - ./shared:/run/app/
     configs:
       - source: torrc
         target: /etc/tor/torrc
+      - source: vanguards
+        target: /etc/tor/vanguards.conf
     networks:
       - internal
       - external
@@ -147,5 +151,7 @@ networks:
 configs:
   torrc:
     file: ./conf/torrc
+  vanguards:
+    file: ./conf/vanguards.conf
   wireguard:
     file: ./conf/wireguard.conf

@@ -36,7 +36,10 @@ ENV PATH="/venv/bin:${PATH}"
 
 # Install packages
 RUN /venv/bin/pip install \
-    nyx==2.1.0
+    nyx==2.1.0 \
+    stem==1.8.2 \
+    vanguards==0.3.1 \
+    configparser==7.0.0
 
 # Replace getargspec with getfullargspec
 #
@@ -45,9 +48,27 @@ RUN /venv/bin/pip install \
 #
 # The nyx package uses getargspec and is no longer maintained. Therefore, I decided to replace
 # the function name instead of creating a new package or forking the project.
-#
-# Note: This entire project is for educational purposes and enjoyment.
 RUN find /venv/lib/python3.12/site-packages/nyx -type f -exec sed -i 's/getargspec/getfullargspec/g' {} \;
+
+# Replace SafeConfigParser with ConfigParser
+#
+# Starting with Python 3.2, SafeConfigParser was deprecated and later removed in Python 3.12.
+# The shorter and recommended class name is now ConfigParser.
+# Reference: https://docs.python.org/3/whatsnew/3.12.html
+#
+# The vanguards package still references SafeConfigParser, which is obsolete. To keep the package
+# functional with Python 3.12, SafeConfigParser references are updated to ConfigParser.
+RUN find /venv/lib/python3.12/site-packages/vanguards -type f -exec sed -i 's/SafeConfigParser/ConfigParser/g' {} \;
+
+# Replace readfp with read_file
+#
+# As of Python 3.12, the readfp method, which was a part of the configparser.ConfigParser class,
+# has been deprecated and removed. The recommended method to use now is read_file()
+# Reference: https://docs.python.org/3/whatsnew/3.12.html
+#
+# The vanguards package still uses readfp, which is incompatible with Python 3.12. To ensure
+# continued functionality, the readfp references are updated to read_file.
+RUN find /venv/lib/python3.12/site-packages/vanguards -type f -exec sed -i 's/readfp/read_file/g' {} \;
 
 # Create and set the Tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service
