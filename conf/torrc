@@ -1,6 +1,7 @@
 # Configuration file for a Tor hidden service
 
-# Set the log to notice level to the standard output
+# Set the log to notice level to the standard output and to a file
+Log notice file /var/log/tor/notices.log
 Log notice stdout
 
 # Define the location where Tor will store information about your hidden service
