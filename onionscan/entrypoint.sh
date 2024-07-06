@@ -18,6 +18,3 @@ echo "Tor is fully operational."
 
 # Run OnionScan with the domain provided as an argument
 onionscan -verbose --torProxyAddress 127.0.0.1:9050 "$1"
-
-# Optionally, keep the container running if needed
-# tail -f /dev/null
