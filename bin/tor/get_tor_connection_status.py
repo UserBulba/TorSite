@@ -1,30 +1,31 @@
+import sys
 import time
-import debugpy
-from stem import Signal
-from stem.connection import connect_port
 from stem.control import Controller
 
-debugpy.listen(("0.0.0.0", 5678))  # nosec
-debugpy.wait_for_client()
-logger.debug("Waiting for debugger attach")
 
-def is_tor_ready():
+def is_tor_ready() -> bool:
+    """
+    Check if Tor is fully operational by checking the bootstrap phase.
+
+    Returns:
+        bool: True if Tor is fully operational, False otherwise.
+    """
     try:
-        # Connect to Tor using cookie authentication (no password needed)
         with Controller.from_port(port=9051) as controller:
-            controller.authenticate()  # Automatically uses cookie authentication if available
-            # Check if Tor has fully bootstrapped
-            return (
-                controller.is_alive()
-                and controller.get_info("status/bootstrap-phase") == "tag=done"
-            )
+            controller.authenticate()
+            bootstrap_phase = controller.get_info("status/bootstrap-phase")
+            print(f"Current bootstrap phase: {bootstrap_phase}")
+            return "PROGRESS=100" in bootstrap_phase and "TAG=done" in bootstrap_phase
+
     except Exception as e:
         print(f"Error checking Tor status: {e}")
         return False
 
 
 if __name__ == "__main__":
-    while not is_tor_ready():
-        print("Waiting for Tor to be fully operational...")
-        time.sleep(5)
-    print("Tor is fully operational.")
+    if is_tor_ready():
+        print("Tor is fully operational.")
+        sys.exit(0)  # (healthy)
+    else:
+        print("Tor is not fully operational.")
+        sys.exit(1)  # (unhealthy)
