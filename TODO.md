@@ -2,5 +2,5 @@
 
 - [x] Snowflake
 - [x] Nyx
-- [ ] Vanguards
+- [x] Vanguards
 - [ ] Onionbalance
