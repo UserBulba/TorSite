@@ -15,11 +15,11 @@ HiddenServicePort 80 unix:/run/app/sock
 # Avoid running as an exit relay
 ExitRelay 0
 
-# Nyx Configuration
+# Control Port configuration - Nyx, Vanguards
 ControlPort 9051
 CookieAuthentication 1
 
-# Snowflake Configuration
+# Socket configuration - Snowflake
 UseBridges 1
 SocksPort 9050
 
