@@ -26,7 +26,8 @@ RUN apk add --no-cache \
     python3=3.12.3-r1 \
     py3-pip=24.0-r2 \
     py3-virtualenv=20.26.2-r0 \
-    tor=0.4.8.12-r0
+    tor=0.4.8.12-r0 \
+    acl=2.3.2-r0
 
 # Create a virtual environment
 RUN virtualenv /venv
@@ -80,8 +81,20 @@ VOLUME /run/app/
 # Copy the Snowflake binary
 COPY --from=builder /snowflake/client/client /usr/bin/snowflake-client
 
+# Copy the scripts
+COPY ./bin/tor/get_tor_connection_status.py /etc/tor/scripts/get_tor_connection_status.py
+COPY ./bin/tor/get_tor_hidden_domain.py /etc/tor/scripts/get_tor_hidden_domain.py
+COPY ./bin/tor/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set the default ACL for /tmp
+RUN setfacl -d -m u:tor:rwx /tmp && \
+    setfacl -m u:tor:rwx /tmp
+
 # Run Tor (non-daemon mode)
 USER tor
 
-# Run tor with the custom configuration
-CMD ["tor", "-f", "/etc/tor/torrc"]
+# Specify custom entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
