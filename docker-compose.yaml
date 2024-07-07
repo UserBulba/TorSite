@@ -61,9 +61,11 @@ services:
           cpus: '0.5'
           memory: 128M
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 9050 || exit 1"]
+      test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
       interval: 10s
       timeout: 10s
+      start_period: 60s
+      start_interval: 5s
       retries: 3
     labels:
       - "com.octo.service=tor"
@@ -97,6 +99,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -I --fail --unix-socket /run/app/sock http://localhost || exit 1"]
       interval: 30s
+
       timeout: 10s
       retries: 3
     labels:
