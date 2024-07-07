@@ -1,4 +1,5 @@
 #!/bin/sh
+
 set -e  # Exit on error
 
 # Define default project name
