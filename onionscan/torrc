@@ -1,3 +1,7 @@
+# Configuration file for a Tor
 AutomapHostsOnResolve 1
-SocksPort localhost:9050 IsolateDestAddr
+SocksPort 9050 IsolateDestAddr
+
+# Set the log to notice level to the standard output and to a file
 Log notice file /var/log/tor/notices.log
+Log notice stdout
