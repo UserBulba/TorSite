@@ -28,93 +28,92 @@ services:
           cpus: '0.25'
           memory: 64M
 
-  tor-frontend:
-      image: tor:frontend-${TAG:-dev}
-      container_name: tor-frontend
-      profiles:
-        - tor
-      build:
-        context: .
-        dockerfile: Dockerfile.tor-frontend-${DISTRIBUTION:-alpine}
-      environment:
-        - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
-      volumes:
-        - ./domain:/var/lib/tor/hidden_service
-      configs:
-        - source: torrc-frontend
-          target: /etc/tor/torrc
-        - source: vanguards
-          target: /etc/tor/vanguards.conf
-      networks:
-        - internal
-        - external
-      depends_on:
-        - init-permissions
-        - tor-backend
-      <<: *restart
-      deploy:
-        resources:
-          limits:
-            cpus: '1.0'
-            memory: 256M
-          reservations:
-            cpus: '0.5'
-            memory: 128M
-      healthcheck:
-        test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
-        interval: 10s
-        timeout: 10s
-        start_period: 60s
-        start_interval: 5s
-        retries: 3
-      labels:
-        - "com.octo.service=tor"
-        - "com.octo.version=${VERSION:-dev}"
+  onionbalance:
+    image: tor:frontend-${TAG:-dev}
+    container_name: tor-frontend
+    profiles:
+      - tor
+    build:
+      context: .
+      dockerfile: Dockerfile.tor-frontend-${DISTRIBUTION:-alpine}
+    environment:
+      - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
+    volumes:
+      - ./domain:/var/lib/tor/hidden_service
+    configs:
+      - source: torrc-frontend
+        target: /etc/tor/torrc
+      - source: vanguards
+        target: /etc/tor/vanguards.conf
+    networks:
+      - internal
+      - external
+    depends_on:
+      - init-permissions
+      - backend
+    <<: *restart
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
+      interval: 10s
+      timeout: 10s
+      start_period: 60s
+      start_interval: 5s
+      retries: 3
+    labels:
+      - "com.octo.service=tor"
+      - "com.octo.version=${VERSION:-dev}"
 
-  tor-backend:
-      image: tor:backend-${TAG:-dev}
-      # container_name: tor-backend
-      profiles:
-        - tor
-      build:
-        context: .
-        dockerfile: Dockerfile.tor-backend-${DISTRIBUTION:-alpine}
-      environment:
-        - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
-      volumes:
-        - ./shared:/run/app/
-      configs:
-        - source: torrc-backend
-          target: /etc/tor/torrc
-        - source: vanguards
-          target: /etc/tor/vanguards.conf
-      networks:
-        - internal
-        - external
-      depends_on:
-        - init-permissions
-      <<: *restart
-      deploy:
-        mode: replicated
-        replicas: 3
-        endpoint_mode: vip
-        resources:
-          limits:
-            cpus: '1.0'
-            memory: 256M
-          reservations:
-            cpus: '0.5'
-            memory: 128M
-      healthcheck:
-        test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
-        interval: 10s
-        timeout: 10s
-        start_period: 60s
-        start_interval: 5s
-        retries: 3
-      labels:
-        - "com.octo.service=tor"
-        - "com.octo.version=${VERSION:-dev}"
+  backend:
+    image: tor:backend-${TAG:-dev}
+    profiles:
+      - tor
+    build:
+      context: .
+      dockerfile: Dockerfile.tor-backend-${DISTRIBUTION:-alpine}
+    environment:
+      - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
+    volumes:
+      - ./shared:/run/app/
+    configs:
+      - source: torrc-backend
+        target: /etc/tor/torrc
+      - source: vanguards
+        target: /etc/tor/vanguards.conf
+    networks:
+      - internal
+      - external
+    depends_on:
+      - init-permissions
+    <<: *restart
+    deploy:
+      mode: replicated
+      replicas: ${REPLICAS:-3}
+      endpoint_mode: vip
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
+      interval: 10s
+      timeout: 10s
+      start_period: 60s
+      start_interval: 5s
+      retries: 3
+    labels:
+      - "com.octo.service=tor"
+      - "com.octo.version=${VERSION:-dev}"
 
   nginx:
     image: nginx:${TAG:-dev}
@@ -130,7 +129,7 @@ services:
     volumes:
       - ./shared:/run/app/
     depends_on:
-      tor-backend:
+      backend:
         condition: service_healthy
     <<: *restart
     deploy:
