@@ -1,0 +1,101 @@
+#####################################################################
+
+FROM alpine:3.20.0 as builder
+
+# Install required packages
+RUN apk add --no-cache \
+    go=1.22.4-r0 \
+    git=2.45.2-r0
+
+# Build the Snowflake client
+RUN git clone https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake.git
+WORKDIR /snowflake/client
+RUN go get && \
+    go build
+
+# Use the Alpine image
+FROM alpine:3.20.0
+
+LABEL maintainer="Piotr K."
+LABEL version="1.0"
+LABEL description=""
+LABEL vendor=""
+
+# Install required packages
+RUN apk add --no-cache \
+    python3=3.12.3-r1 \
+    py3-pip=24.0-r2 \
+    py3-virtualenv=20.26.2-r0 \
+    tor=0.4.8.12-r0 \
+    acl=2.3.2-r0
+
+# Create a virtual environment
+RUN virtualenv /venv
+
+# Set the PATH to include the virtual environment
+ENV PATH="/venv/bin:${PATH}"
+
+# Install packages
+RUN /venv/bin/pip install \
+    nyx==2.1.0 \
+    stem==1.8.2 \
+    vanguards==0.3.1 \
+    configparser==7.0.0
+
+# Replace getargspec with getfullargspec
+#
+# As per Python 3.11 release notes, getargspec has been removed and replaced by getfullargspec.
+# Reference: https://docs.python.org/3.11/whatsnew/3.11.html#removed
+#
+# The nyx package uses getargspec and is no longer maintained. Therefore, I decided to replace
+# the function name instead of creating a new package or forking the project.
+RUN find /venv/lib/python3.12/site-packages/nyx -type f -exec sed -i 's/getargspec/getfullargspec/g' {} \;
+
+# Replace SafeConfigParser with ConfigParser
+#
+# Starting with Python 3.2, SafeConfigParser was deprecated and later removed in Python 3.12.
+# The shorter and recommended class name is now ConfigParser.
+# Reference: https://docs.python.org/3/whatsnew/3.12.html
+#
+# The vanguards package still references SafeConfigParser, which is obsolete. To keep the package
+# functional with Python 3.12, SafeConfigParser references are updated to ConfigParser.
+RUN find /venv/lib/python3.12/site-packages/vanguards -type f -exec sed -i 's/SafeConfigParser/ConfigParser/g' {} \;
+
+# Replace readfp with read_file
+#
+# As of Python 3.12, the readfp method, which was a part of the configparser.ConfigParser class,
+# has been deprecated and removed. The recommended method to use now is read_file()
+# Reference: https://docs.python.org/3/whatsnew/3.12.html
+#
+# The vanguards package still uses readfp, which is incompatible with Python 3.12. To ensure
+# continued functionality, the readfp references are updated to read_file.
+RUN find /venv/lib/python3.12/site-packages/vanguards -type f -exec sed -i 's/readfp/read_file/g' {} \;
+
+# Copy the Snowflake binary
+COPY --from=builder /snowflake/client/client /usr/bin/snowflake-client
+
+# Copy the scripts
+COPY ./bin/tor/get_tor_connection_status.py /etc/tor/scripts/get_tor_connection_status.py
+COPY ./bin/tor/get_tor_hidden_domain.py /etc/tor/scripts/get_tor_hidden_domain.py
+COPY ./bin/tor/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Get OnionBalance configuration
+COPY --chown=100:101 ./conf/ob_config /var/lib/tor/hidden_service/ob_config
+# Fix permissions on the hidden service directory
+RUN chmod 700 /var/lib/tor/hidden_service
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set the default ACL for /tmp
+RUN setfacl -d -m u:tor:rwx /tmp && \
+    setfacl -m u:tor:rwx /tmp
+
+# Define the volumes
+VOLUME /run/app/
+
+# Run Tor (non-daemon mode)
+USER tor
+
+# Specify custom entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

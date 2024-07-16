@@ -1,0 +1,30 @@
+# Configuration file for a Tor hidden service
+
+# Set the log to notice level to the standard output and to a file
+Log notice file /var/log/tor/notices.log
+Log notice stdout
+
+# Define the location where Tor will store information about your hidden service
+# The directory must be writable by the Tor process
+DataDirectory /var/lib/tor
+
+# Hidden Service Configuration
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 unix:/run/app/sock
+HiddenServiceOnionbalanceInstance 1
+
+# Avoid running as an exit relay
+ExitRelay 0
+
+# Control Port configuration - Nyx, Vanguards
+ControlPort 9051
+CookieAuthentication 1
+
+# Socket configuration - Snowflake
+UseBridges 1
+SocksPort 9050
+
+ClientTransportPlugin snowflake exec /usr/bin/snowflake-client -log /var/log/tor/snowflake.log
+
+Bridge snowflake 192.0.2.3:80 2B280B23E1107BB62ABFC40DDCC8824814F80A72 fingerprint=2B280B23E1107BB62ABFC40DDCC8824814F80A72 url=https://1098762253.rsc.cdn77.org/ fronts=www.cdn77.com,www.phpmyadmin.net ice=stun:stun.l.google.com:19302,stun:stun.antisip.com:3478,stun:stun.bluesip.net:3478,stun:stun.dus.net:3478,stun:stun.epygi.com:3478,stun:stun.sonetel.com:3478,stun:stun.uls.co.za:3478,stun:stun.voipgate.com:3478,stun:stun.voys.nl:3478 utls-imitate=hellorandomizedalpn
+Bridge snowflake 192.0.2.4:80 8838024498816A039FCBBAB14E6F40A0843051FA fingerprint=8838024498816A039FCBBAB14E6F40A0843051FA url=https://1098762253.rsc.cdn77.org/ fronts=www.cdn77.com,www.phpmyadmin.net ice=stun:stun.l.google.com:19302,stun:stun.antisip.com:3478,stun:stun.bluesip.net:3478,stun:stun.dus.net:3478,stun:stun.epygi.com:3478,stun:stun.sonetel.net:3478,stun:stun.uls.co.za:3478,stun:stun.voipgate.com:3478,stun:stun.voys.nl:3478 utls-imitate=hellorandomizedalpn

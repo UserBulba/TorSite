@@ -1,7 +1,7 @@
-# Exclude all files in the domain directory
+# Exclude private tor files
 domain/*
-# Exclude all files in the shared directory
 shared/*
+ob_config
 
 # Log files
 *.log
