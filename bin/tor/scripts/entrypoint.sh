@@ -10,9 +10,8 @@ while [ ! -f /var/log/tor/notices.log ]; do
   sleep 1
 done
 
-
 # Wait for the log file to indicate that Tor is fully bootstrapped
-echo "Waiting for Tor to be fully operational..."
+echo "Waiting for Tor to establish a connection..."
 while ! grep -q "Bootstrapped 100% (done): Done" /var/log/tor/notices.log; do
     sleep 1
 done
