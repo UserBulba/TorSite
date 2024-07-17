@@ -1,6 +1,7 @@
 # Tor All in One - Dockerized Hidden Service
 
-This project provides a Dockerized solution for hosting a Tor hidden service, integrating Nginx and Hugo for a robust, secure, and easily maintainable web presence on the dark web. It is designed for users seeking a highly automated setup with advanced tools for domain generation, security scanning, and traffic monitoring.
+This project provides a Dockerized solution for hosting a Tor hidden service.
+It is designed for users seeking a highly automated setup with tools for domain generation, security scanning, and traffic monitoring.
 
 ![Logo](images/logo.jpg "Logo")
 
