@@ -1,29 +1,38 @@
-# Tor website
+# Tor All in One - Dockerized Hidden Service
+
+This project provides a Dockerized solution for hosting a Tor hidden service, integrating Nginx and Hugo for a robust, secure, and easily maintainable web presence on the dark web. It is designed for users seeking a highly automated setup with advanced tools for domain generation, security scanning, and traffic monitoring.
 
 ![Logo](images/logo.jpg "Logo")
 
-## Table of Contents
+## Getting Started
 
-- [Description](#description)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Tools](#tools)
-  - [Generating .onion domain](#generating-onion-domain)
-  - [OnionScan](#onionscan)
-  - [Nyx](#nyx)
+### Prerequisites
 
-## Description
+- Docker
+- Docker Compose
 
-This repository contains a Dockerized solution for hosting a hidden website using Nginx, Hugo, and Tor.
+It is good to have a basic understanding of Docker and Docker Compose before using this project.
+
+### Configuration
+
+- `OnionBalance` requires a configuration file named `ob_config`. Create this file in the `conf` folder with the following content:
+
+    ```ini
+    MasterOnionAddress domain.onion
+    ```
+
+    Make sure to replace `domain.onion` with your actual master onion address.
+
+### Installation
+
+To spin up a Tor hidden service, you need to have Docker installed on your machine. The project is built using Docker Compose, and it contains a set of scripts for starting and stopping the project.
 
 > **Note**: This project contains two versions of images, Alpine and Debian. To switch between them, change the base image in `.env` file. The Alpine image is primarily used.
-
-## Installation
 
 Use makefile to 'build' the project:
 
 ```bash
-make
+make install
 ```
 
 ## Usage
@@ -63,3 +72,7 @@ To monitor Tor traffic, use Nyx:
 ```bash
 ./nyx.sh
 ```
+
+## External links
+
+- [Best Practices for Hosting Onion Services](https://riseup.net/en/security/network-security/tor/onionservices-best-practices)
