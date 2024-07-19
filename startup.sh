@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # Exit on error
 set -e
 
 SERVICE_NAME="backend"
+domains=()
 
 # Load environment variables from .env file
 if [ -f .env ]; then
@@ -17,8 +18,8 @@ check_health() {
     local count
     local service_status
 
-    echo "\nService ${service} has ${REPLICAS} replicas."
-    echo "Checking health of service ${service}, waiting for all replicas to become healthy...\n"
+    echo -e "\nService ${service} has ${REPLICAS} replicas."
+    echo -e "Checking health of service ${service}, waiting for all replicas to become healthy...\n"
 
     for instance in $(seq 1 ${REPLICAS}); do
         count=0
@@ -56,6 +57,20 @@ else
     echo "Directory already exists: $DIRECTORY"
 fi
 
+# Get .onion hostname
+if [ -f "${DIRECTORY}/hostname" ]; then
+    echo "File exists: ${DIRECTORY}/hostname"
+
+    # Read the content of the file and assign it to a variable
+    hostname_value=$(sudo cat "${DIRECTORY}/hostname")
+    echo "Hostname is: $hostname_value"
+else
+    echo "File does not exist: ${DIRECTORY}/hostname"
+    echo "Unable to proceed without hostname file."
+    # Exit if the hostname file does not exist
+    exit 1
+fi
+
 echo "Setting up directories..."
 
 # Set permissions and ownership for the directory
@@ -84,7 +99,11 @@ fi
 # Get the domain name for each container
 for instance in $(seq 1 $REPLICAS); do
     container_name="${PROJECT_NAME}-${SERVICE_NAME}-${instance}"
-    ./scripts/domain.sh "$container_name"
+    domain=$(./scripts/domain.sh "$container_name")
+    domains+=("$domain")
 done
 
-echo "\nStartup script completed."
+# TODO: run script if all containers are healthy
+python3 ./scripts/config_generator.py "${domains[@]}" "$hostname_value"
+
+echo -e "\nStartup script completed."
