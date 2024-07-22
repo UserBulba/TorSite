@@ -1,0 +1,7 @@
+services:
+- instances:
+{% for domain in domains %}
+  - address: {{ domain }}
+    name: node{{ loop.index }}
+{% endfor %}
+  key: {{ key }}
