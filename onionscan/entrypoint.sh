@@ -7,13 +7,13 @@ tor -f "/etc/tor/torrc" &
 
 # Wait for the log file to be created
 while [ ! -f /var/log/tor/notices.log ]; do
-  sleep 1
+    sleep 1
 done
 
 # Check for Tor readiness
 echo "Waiting for Tor to establish a connection..."
 while ! grep -q "Bootstrapped 100% (done): Done" /var/log/tor/notices.log; do
-  sleep 1
+    sleep 1
 done
 sleep 5 # Sleep for a few more seconds to ensure Tor is fully operational
 echo "Tor is fully operational."

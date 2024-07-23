@@ -1,4 +1,5 @@
-# Configuration file for a Tor
+# Configuration file for a Tor.
+
 AutomapHostsOnResolve 1
 SocksPort 9050 IsolateDestAddr
 
