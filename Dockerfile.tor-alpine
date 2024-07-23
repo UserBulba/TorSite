@@ -74,10 +74,6 @@ RUN find /venv/lib/python3.12/site-packages/vanguards -type f -exec sed -i 's/re
 # Create and set the Tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service
 
-# Define the volumes
-VOLUME /var/lib/tor/hidden_service/
-VOLUME /run/app/
-
 # Copy the Snowflake binary
 COPY --from=builder /snowflake/client/client /usr/bin/snowflake-client
 
@@ -92,6 +88,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Set the default ACL for /tmp
 RUN setfacl -d -m u:tor:rwx /tmp && \
     setfacl -m u:tor:rwx /tmp
+
+# Define the volumes
+VOLUME /var/lib/tor/hidden_service/
+VOLUME /run/app/
 
 # Run Tor (non-daemon mode)
 USER tor
