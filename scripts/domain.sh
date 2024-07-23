@@ -12,5 +12,5 @@ domain=$(docker exec "$CONTAINER_NAME" python "$SCRIPT_PATH")
 if [ -z "$domain" ]; then
     echo "Failed to retrieve the domain or no domain found."
 else
-    echo "The hidden service domain is: $domain"
+    echo "$domain"
 fi

@@ -6,8 +6,8 @@ TOR_CONTAINER_ID=$(docker ps --filter "ancestor=tor:octo" --format "{{.ID}}")
 
 # Check if the container is found and running
 if [ -z "$TOR_CONTAINER_ID" ]; then
-  echo "Error: No running container found for image tor:octo"
-  exit 1
+    echo "Error: No running container found for image tor:octo"
+    exit 1
 fi
 
 # Execute nyx in the running container
