@@ -1,7 +1,7 @@
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 
 
 def setup_logger() -> None:

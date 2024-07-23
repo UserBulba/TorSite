@@ -47,6 +47,7 @@ repos:
     hooks:
       - id: shellcheck
         name: Shellcheck
+        args: ["--color=always", "--exclude=SC1091"]
 
   - repo: https://github.com/openstack/bashate
     rev: 2.1.1

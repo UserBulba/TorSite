@@ -2,6 +2,7 @@
 domain/*
 shared/*
 ob_config
+config.yaml
 
 # Log files
 *.log
