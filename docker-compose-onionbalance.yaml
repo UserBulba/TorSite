@@ -8,10 +8,11 @@ services:
     image: alpine:latest
     container_name: init-permissions
     profiles:
-      - tor
+      - backend
     volumes:
       - ./domain:/var/lib/tor/hidden_service
       - ./shared:/run/app
+    network_mode: "none"
     command: |
       sh -c "
       chown -R 100:101 /var/lib/tor/hidden_service && \
@@ -32,25 +33,21 @@ services:
     image: tor:frontend-${TAG:-dev}
     container_name: tor-frontend
     profiles:
-      - tor
+      - frontend
     build:
       context: .
       dockerfile: Dockerfile.tor-frontend-${DISTRIBUTION:-alpine}
     environment:
       - VANGUARDS_CONFIG=/etc/tor/vanguards.conf
     volumes:
-      - ./domain:/var/lib/tor/hidden_service
+      - ./domain:/hs_keys
     configs:
       - source: torrc-frontend
         target: /etc/tor/torrc
       - source: vanguards
         target: /etc/tor/vanguards.conf
     networks:
-      - internal
       - external
-    depends_on:
-      - init-permissions
-      - backend
     <<: *restart
     deploy:
       resources:
@@ -71,10 +68,10 @@ services:
       - "com.octo.service=tor"
       - "com.octo.version=${VERSION:-dev}"
 
-  backend:
+  tor:
     image: tor:backend-${TAG:-dev}
     profiles:
-      - tor
+      - backend
     build:
       context: .
       dockerfile: Dockerfile.tor-backend-${DISTRIBUTION:-alpine}
@@ -88,7 +85,6 @@ services:
       - source: vanguards
         target: /etc/tor/vanguards.conf
     networks:
-      - internal
       - external
     depends_on:
       - init-permissions
@@ -106,11 +102,10 @@ services:
           memory: 128M
     healthcheck:
       test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
-      interval: 10s
+      interval: 30s
       timeout: 10s
-      start_period: 60s
-      start_interval: 5s
-      retries: 3
+      start_period: 120s
+      retries: 5
     labels:
       - "com.octo.service=tor"
       - "com.octo.version=${VERSION:-dev}"
@@ -119,7 +114,7 @@ services:
     image: nginx:${TAG:-dev}
     container_name: nginx
     profiles:
-      - tor
+      - backend
     build:
       context: .
       dockerfile: Dockerfile.nginx
@@ -128,8 +123,9 @@ services:
         - NGINX_VERSION=1.25.3
     volumes:
       - ./shared:/run/app/
+    network_mode: "none"
     depends_on:
-      backend:
+      tor:
         condition: service_healthy
     <<: *restart
     deploy:
