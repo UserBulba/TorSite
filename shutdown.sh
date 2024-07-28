@@ -1,28 +1,40 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e  # Exit on error
+set -e # Exit on error
 
 # Define default project name
-PROJECT_NAME="tor"
-TAG="octo"
 REMOVE_IMAGE=false
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    while IFS='=' read -r key value; do
+        if [[ $key != \#* && $key != "" ]]; then
+            export "$key"="$value"
+            echo "Loaded $key=$value"
+        fi
+    done <.env
+else
+    echo ".env file not found"
+fi
 
 while [ $# -gt 0 ]; do
     case "$1" in
-    -remove|--remove-images)
+    -remove | --remove-images)
         REMOVE_IMAGE=true
         ;;
-    -p|--project)
-        PROJECT_NAME="$2"
-        shift
-        ;;
     *)
-        echo "Usage: $0 [--remove-image] [-p|--project <project_name>]"
+        echo "Usage: $0 [--remove-images]"
         exit 1
         ;;
     esac
     shift
 done
+
+# Check if critical variables are set
+if [ -z "$PROJECT_NAME" ] || [ -z "$TAG" ]; then
+    echo "Critical variables are not set. PROJECT_NAME='$PROJECT_NAME', TAG='$TAG'"
+    exit 1
+fi
 
 # Check if the script is run as root
 if [ "$(id -u)" != "0" ]; then
@@ -34,14 +46,10 @@ fi
 echo "Shutting down Docker services..."
 if command -v docker-compose >/dev/null 2>&1; then
     echo "Stopping services using docker-compose..."
-    docker-compose -p "$PROJECT_NAME" \
-    -f docker-compose-onionbalance.yaml \
-    --profile "$PROJECT_NAME" down
+    docker-compose -p "$PROJECT_NAME" down
 elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     echo "Stopping services using Docker Compose v2..."
-    docker compose -p "$PROJECT_NAME" \
-    -f docker-compose-onionbalance.yaml \
-    --profile "$PROJECT_NAME" down
+    docker compose -p "$PROJECT_NAME" down
 else
     echo "docker-compose is not installed."
     exit 1
