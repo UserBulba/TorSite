@@ -2,7 +2,7 @@
 
 # Get the directory where the script is located and change to it
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR" || exit 1
 
 # Check if a domain was passed as an argument
 if [ "$#" -ne 1 ]; then
@@ -18,14 +18,11 @@ echo "Preparing to scan: $DOMAIN"
 
 # Build the Docker image
 echo "Building Docker image..."
-docker build -f Dockerfile.onionscan -t onionscan:octo .
-
-# Check if the Docker build was successful
-if [ $? -ne 0 ]; then
+if ! docker build -f Dockerfile.onionscan -t onionscan:octo .; then
     echo "Docker build failed, exiting..."
     exit 1
 fi
 
 # Run the Docker container, passing the domain as an argument
 echo "Running OnionScan on $DOMAIN..."
-docker run --rm onionscan:octo $DOMAIN
+docker run --rm onionscan:octo "$DOMAIN"
