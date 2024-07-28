@@ -1,7 +1,9 @@
+LOG_LEVEL: {{ log_level }}
+LOG_LOCATION: {{ log_location }}
 services:
 - instances:
-{% for domain in domains %}
+  {%- for domain in domains %}
   - address: {{ domain }}
     name: node{{ loop.index }}
-{% endfor %}
-  key: {{ key }}
+  {%- endfor %}
+  key: {{ key_path }}
