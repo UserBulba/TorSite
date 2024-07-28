@@ -4,7 +4,7 @@ FROM alpine:3.20.0 as builder
 
 # Install required packages
 RUN apk add --no-cache \
-    go=1.22.4-r0 \
+    go=1.22.5-r0 \
     git=2.45.2-r0
 
 # Build the Snowflake client
@@ -77,7 +77,7 @@ COPY --from=builder /snowflake/client/client /usr/bin/snowflake-client
 # Copy the scripts
 COPY ./bin/tor/get_tor_connection_status.py /etc/tor/scripts/get_tor_connection_status.py
 COPY ./bin/tor/get_tor_hidden_domain.py /etc/tor/scripts/get_tor_hidden_domain.py
-COPY ./bin/tor/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./bin/tor/scripts/entrypoint-backend.sh /usr/local/bin/entrypoint.sh
 
 # Get OnionBalance configuration
 COPY --chown=100:101 ./conf/ob_config /var/lib/tor/hidden_service/ob_config
