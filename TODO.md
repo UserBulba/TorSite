@@ -3,4 +3,6 @@
 - [x] Snowflake
 - [x] Nyx
 - [x] Vanguards
-- [ ] Onionbalance
+- [x] Onionbalance
+- [x] Kuma
+  - [x] Proxy

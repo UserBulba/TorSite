@@ -65,10 +65,10 @@ services:
       start_interval: 5s
       retries: 3
     labels:
-      - "com.octo.service=tor"
+      - "com.octo.service=onionbalance"
       - "com.octo.version=${VERSION:-dev}"
 
-  tor:
+  tor-backend:
     image: tor:backend-${TAG:-dev}
     profiles:
       - backend
@@ -103,8 +103,8 @@ services:
     healthcheck:
       test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
       interval: 30s
-      timeout: 10s
-      start_period: 120s
+      timeout: 20s
+      start_period: 180s
       retries: 5
     labels:
       - "com.octo.service=tor"
@@ -125,7 +125,7 @@ services:
       - ./shared:/run/app/
     network_mode: "none"
     depends_on:
-      tor:
+      tor-backend:
         condition: service_healthy
     <<: *restart
     deploy:
@@ -143,6 +143,49 @@ services:
       retries: 3
     labels:
       - "com.octo.service=nginx"
+      - "com.octo.version=${VERSION:-dev}"
+
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: kuma
+    profiles:
+      - monitoring
+    volumes:
+      - kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - external
+    ports:
+      - "3001:3001"
+    depends_on:
+      tor-proxy:
+        condition: service_healthy
+    <<: *restart
+
+  tor-proxy:
+    image: tor:proxy-${TAG:-dev}
+    container_name: tor-proxy
+    profiles:
+      - monitoring
+    build:
+      context: .
+      dockerfile: Dockerfile.tor-proxy-${DISTRIBUTION:-alpine}
+    configs:
+      - source: torrc-proxy
+        target: /etc/tor/torrc
+    networks:
+      - external
+    ports:
+      - "9050:9050"
+    <<: *restart
+    healthcheck:
+      test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
+      interval: 30s
+      timeout: 20s
+      start_period: 180s
+      retries: 5
+    labels:
+      - "com.octo.service=proxy"
       - "com.octo.version=${VERSION:-dev}"
 
 networks:
@@ -165,5 +208,10 @@ configs:
     file: ./conf/torrc-frontend
   torrc-backend:
     file: ./conf/torrc-backend
+  torrc-proxy:
+    file: ./conf/torrc-proxy
   vanguards:
     file: ./conf/vanguards.conf
+
+volumes:
+  kuma:

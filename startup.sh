@@ -4,9 +4,10 @@
 set -e
 
 # Define default project name
-SERVICE_NAME="tor"
+SERVICE_NAME="tor-backend"
 BACKEND_PROFILE="backend"
 FRONTEND_PROFILE="frontend"
+MONITOR_PROFILE="monitoring"
 VENV_DIR="venv"
 domains=()
 
@@ -112,7 +113,6 @@ fi
 
 echo "Running docker-compose..."
 
-# Ensure docker-compose is available and run it
 if command -v docker-compose >/dev/null 2>&1; then
     docker-compose -p "$PROJECT_NAME" \
         -f docker-compose-onionbalance.yaml \
@@ -139,21 +139,32 @@ done
 # Generate the frontend configuration file.
 python ./scripts/config_generator.py config --log_level "$LOG_LEVEL" --log_location "$LOG_LOCATION" --domains "${domains[@]}" --key_path "$KEY_LOCATION"
 
-# Ensure docker-compose is available and run it
 if command -v docker-compose >/dev/null 2>&1; then
     docker-compose -p "$PROJECT_NAME" \
         -f docker-compose-onionbalance.yaml \
         --profile "$FRONTEND_PROFILE" up \
         -d --build --force-recreate
+
+    docker-compose -p "$PROJECT_NAME" \
+        -f docker-compose-onionbalance.yaml \
+        --profile "$MONITOR_PROFILE" up \
+        -d --build --force-recreate
+
 elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     docker compose -p "$PROJECT_NAME" \
         -f docker-compose-onionbalance.yaml \
         --profile "$FRONTEND_PROFILE" up \
         -d --build --force-recreate
+
+    docker compose -p "$PROJECT_NAME" \
+        -f docker-compose-onionbalance.yaml \
+        --profile "$MONITOR_PROFILE" up \
+        -d --build --force-recreate
 else
     echo "docker-compose is not installed."
     exit 1
 fi
+
 
 # Deactivate the virtual environment
 deactivate

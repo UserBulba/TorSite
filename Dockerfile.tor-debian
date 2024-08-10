@@ -25,7 +25,8 @@ ENV PATH="/venv/bin:${PATH}"
 
 # Install packages
 RUN /venv/bin/pip install \
-    nyx==2.1.0
+    nyx==2.1.0 \
+    vanguards==0.3.1
 
 # Replace getargspec with getfullargspec
 #
@@ -37,6 +38,8 @@ RUN /venv/bin/pip install \
 #
 # Note: This entire project is for educational purposes and enjoyment.
 RUN find /venv/lib/python3.11/site-packages/nyx -type f -exec sed -i 's/getargspec/getfullargspec/g' {} \;
+
+# TODO: Vanguards installation
 
 # Create and set the Tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service
