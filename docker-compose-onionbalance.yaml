@@ -146,12 +146,14 @@ services:
       - "com.octo.version=${VERSION:-dev}"
 
   kuma:
-    image: louislam/uptime-kuma:1
+    image: kuma:${TAG:-dev}
     container_name: kuma
     profiles:
       - monitoring
+    build:
+      context: .
+      dockerfile: Dockerfile.kuma
     volumes:
-      - kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - external
@@ -161,6 +163,14 @@ services:
       tor-proxy:
         condition: service_healthy
     <<: *restart
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
 
   tor-proxy:
     image: tor:proxy-${TAG:-dev}
@@ -178,6 +188,14 @@ services:
     ports:
       - "9050:9050"
     <<: *restart
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
     healthcheck:
       test: ["CMD", "python", "/etc/tor/scripts/get_tor_connection_status.py"]
       interval: 30s
@@ -212,6 +230,3 @@ configs:
     file: ./conf/torrc-proxy
   vanguards:
     file: ./conf/vanguards.conf
-
-volumes:
-  kuma:
