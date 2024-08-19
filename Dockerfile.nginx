@@ -13,21 +13,21 @@ RUN wget -q "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O nginx.t
     wget -q "https://github.com/${MORE_HEADERS_GITREPO}/archive/v${MORE_HEADERS_VERSION}.tar.gz" -O extra_module.tar.gz
 
 # For latest build deps, see https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine/Dockerfile
-RUN  apk add --no-cache --virtual .build-deps \
-    gcc=13.2.1_git20231014-r0 \
-    libc-dev=0.7.2-r5 \
+RUN apk add --no-cache --virtual .build-deps \
+    gcc=13.2.1_git20240309-r0 \
+    musl-dev=1.2.5-r0 \
     make=4.4.1-r2 \
-    openssl-dev=3.1.6-r2 \
+    openssl-dev=3.3.1-r3 \
     pcre-dev=8.45-r3 \
-    zlib-dev=1.3.1-r0 \
-    linux-headers=6.5-r0 \
-    libxslt-dev=1.1.39-r0 \
-    gd-dev=2.3.3-r8 \
+    zlib-dev=1.3.1-r1 \
+    linux-headers=6.6-r0 \
+    libxslt-dev=1.1.39-r1 \
+    gd-dev=2.3.3-r9 \
     geoip-dev=1.6.12-r5 \
     perl-dev=5.38.2-r0 \
-    libedit-dev=20230828.3.1-r3 \
-    mercurial=6.6-r0 \
-    bash=5.2.21-r0 \
+    libedit-dev=20240517.3.1-r0 \
+    mercurial=6.7.4-r0 \
+    bash=5.2.26-r0 \
     alpine-sdk=1.0-r1 \
     findutils=4.9.0-r5
 
