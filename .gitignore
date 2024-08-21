@@ -21,6 +21,6 @@ data
 # Wireguard
 **/wireguard.conf
 
-# Private build instructions ;)
+# Private build instructions and todo list ;)
 BUILD.md
 TODO.md
