@@ -1,5 +1,5 @@
 # Define the scripts that need permission changes
-SCRIPTS = shutdown.sh startup.sh scripts/nyx.sh scripts/domain.sh
+SCRIPTS = shutdown.sh startup.sh scripts/nyx.sh scripts/domain.sh scripts/kuma.sh
 
 
 # Default target executed when no arguments are given to make

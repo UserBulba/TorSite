@@ -138,6 +138,8 @@ done
 
 # Generate the frontend configuration file.
 python ./scripts/config_generator.py config --log_level "$LOG_LEVEL" --log_location "$LOG_LOCATION" --domains "${domains[@]}" --key_path "$KEY_LOCATION"
+# Generate the monitoring configuration file.
+python ./scripts/config_generator.py monitor_config --master_onion_address "${hostname_value}"
 
 if command -v docker-compose >/dev/null 2>&1; then
     docker-compose -p "$PROJECT_NAME" \
