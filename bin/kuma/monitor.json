@@ -1,0 +1,41 @@
+[
+    {
+        "name": "onionbalance",
+        "url": "https://",
+        "type": "docker",
+        "maxretries": "0",
+        "ignore_tls": "0",
+        "upside_down": "0",
+        "docker_host": "1",
+        "docker_container": "tor-tor-frontend",
+        "proxy_id": "",
+        "http_body_encoding": "utf-8",
+        "parent": "2"
+    },
+    {
+        "name": "Docker",
+        "url": "https://",
+        "type": "group",
+        "maxretries": "0",
+        "ignore_tls": "0",
+        "upside_down": "0",
+        "docker_host": "",
+        "docker_container": "",
+        "proxy_id": "",
+        "http_body_encoding": "json",
+        "parent": ""
+    },
+    {
+        "name": "octo",
+        "url": "https://",
+        "type": "http",
+        "maxretries": "3",
+        "ignore_tls": "0",
+        "upside_down": "0",
+        "docker_host": "",
+        "docker_container": "",
+        "proxy_id": "1",
+        "http_body_encoding": "json",
+        "parent": ""
+    }
+]

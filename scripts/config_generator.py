@@ -1,4 +1,5 @@
 import argparse
+import json
 from typing import List
 
 from jinja2 import Environment
@@ -76,17 +77,37 @@ def generate_monitor_config(env: Environment, master_onion_address: str) -> None
 
     Returns: None
     """
+
+    try:
+        with open("bin/kuma/monitor.json", "r") as file:
+            monitors = json.load(file)
+    except FileNotFoundError:
+        print("Error: monitor.json file not found.")
+        exit(1)
+    except json.JSONDecodeError:
+        print("Error: monitor.json file is not a valid JSON.")
+        exit(1)
+    except Exception as e:
+        print(f"An error occurred while loading monitor.json: {e}")
+        exit(1)
+
+    runtime_parameters = {"octo": {"url": master_onion_address}}
+
+    for monitor in monitors:
+        if monitor["name"] in runtime_parameters:
+            monitor.update(runtime_parameters[monitor["name"]])
+
     try:
         template = env.get_template("monitor_config.template")
-        output = template.render(master_onion_address=master_onion_address)
-        with open("bin/monitor/scripts/monitor_config.sql", "w") as conf:
+        output = template.render(monitors=monitors)
+        with open("bin/kuma/scripts/monitor_config.sql", "w") as conf:
             conf.write(output)
         print("monitor_config generated successfully.")
     except Exception as e:
         print(f"An error occurred while generating monitor_config: {e}")
 
 
-def main(args: argparse.Namespace):
+def prepare(args: argparse.Namespace):
     env = Environment(loader=FileSystemLoader("scripts/templates"))
 
     if args.config_type == "ob_config" or args.config_type == "all":
@@ -98,7 +119,7 @@ def main(args: argparse.Namespace):
         )
 
     if args.config_type == "monitor_config" or args.config_type == "all":
-        generate_monitor_config(args.master_onion_address)
+        generate_monitor_config(env, args.master_onion_address)
 
 
 if __name__ == "__main__":
@@ -130,14 +151,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Ensure that master_onion_address is provided.
     if (
         args.config_type == "ob_config"
         or args.config_type == "monitor_config"
         or args.config_type == "all"
     ) and not args.master_onion_address:
-        parser.error(
-            "The --master_onion_address argument is required for 'ob_config' or 'all'"
-        )
+        parser.error("The --master_onion_address argument is required")
 
-    main(args)
+    prepare(args)

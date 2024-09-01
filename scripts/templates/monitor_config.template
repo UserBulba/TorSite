@@ -1,3 +1,4 @@
+BEGIN TRANSACTION;
 {% for monitor in monitors %}
 INSERT INTO
     "main"."monitor" (
@@ -83,7 +84,7 @@ SELECT
     '1',
     '1',
     '60',
-    '{{ monitor.url }}',
+    {% if monitor.url %}'{{ monitor.url }}'{% else %}NULL{% endif %},
     '{{ monitor.type }}',
     '2000',
     NULL,
@@ -105,9 +106,9 @@ SELECT
     NULL,
     NULL,
     NULL,
-    '{{ monitor.docker_host }}',
+    {% if monitor.docker_host %}'{{ monitor.docker_host }}'{% else %}NULL{% endif %},
     '{{ monitor.docker_container }}',
-    '{{ monitor.proxy_id }}',
+    {% if monitor.proxy_id %}'{{ monitor.proxy_id }}'{% else %}NULL{% endif %},
     '0',
     '',
     '',
@@ -138,8 +139,7 @@ SELECT
     NULL,
     NULL,
     NULL,
-    '{{ monitor.parent }}',
-    NULL,
+    {% if monitor.parent %}'{{ monitor.parent }}'{% else %}NULL{% endif %},
     '0',
     NULL,
     NULL,
@@ -165,5 +165,5 @@ WHERE
         WHERE
             "name" = '{{ monitor.name }}'
     );
-
 {% endfor %}
+COMMIT;

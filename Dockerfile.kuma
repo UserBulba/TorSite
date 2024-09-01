@@ -1,7 +1,7 @@
 FROM louislam/uptime-kuma:1
 
-# Copy SQL configuration script
-COPY ./bin/kuma/scripts/insert_config.sql /tmp/insert_config.sql
+# Copy SQL configuration scripts
+COPY ./bin/kuma/scripts/ /tmp/
 
 # Install the procps package
 RUN apt-get update &&  \
