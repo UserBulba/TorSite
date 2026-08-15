@@ -91,7 +91,9 @@ services:
       - BLOCK_ADS=off
       - BLOCK_SURVEILLANCE=off
       - HTTPPROXY=on
-      - HTTPPROXY_PORT=8888
+      - HTTPPROXY_LISTENING_ADDRESS=:8888
+      # Stops gluetun polling api.github.com for release info through the tunnel.
+      - VERSION_INFORMATION=off
     networks:
       external:
         ipv4_address: 10.10.10.250
