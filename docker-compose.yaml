@@ -93,7 +93,10 @@ services:
       - HTTPPROXY=on
       - HTTPPROXY_PORT=8888
     networks:
-      - external
+      external:
+        ipv4_address: 10.10.10.250
+    labels:
+      autoheal: "true"
     <<: [*restart, *tor-logging]
     deploy:
       resources:
@@ -109,7 +112,9 @@ services:
       interval: 10s
       timeout: 5s
       start_period: 60s
-      retries: 3
+      # ~90s of continuous failure before Docker flips to unhealthy. gluetun's own
+      # HEALTH_RESTART_VPN gets first attempt; autoheal is the backstop.
+      retries: 9
 
   init-permissions:
     image: alpine:3.22.0
@@ -295,12 +300,18 @@ services:
     image: linuxserver/socket-proxy:3.2.16
     container_name: docker-socket-proxy
     profiles:
+      - backend
+      - frontend
+      - app
       - monitoring
     cap_drop:
       - ALL
     environment:
       CONTAINERS: 1
       POST: 0
+      # /containers/{id}/stop|restart|kill only — documented to work with POST=0,
+      # so every other endpoint stays read-only.
+      ALLOW_RESTARTS: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -315,6 +326,39 @@ services:
         reservations:
           cpus: '0.05'
           memory: 32M
+
+  autoheal:
+    image: willfarrell/autoheal@sha256:d33b9167f39854d937b5deb854b4ab3d16b823976a3abf4c2c4a143ebb32eb7e
+    container_name: autoheal
+    profiles:
+      - backend
+      - frontend
+      - app
+    cap_drop:
+      - ALL
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=10m
+    environment:
+      - DOCKER_SOCK=tcp://docker-socket-proxy:2375
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=10
+      - AUTOHEAL_START_PERIOD=300
+      - AUTOHEAL_ONLY_MONITOR_RUNNING=true
+    networks:
+      - internal
+    depends_on:
+      docker-socket-proxy:
+        condition: service_started
+    <<: [*restart, *tor-logging]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+          pids: 20
 
   kuma:
     image: louislam/uptime-kuma:2.2.1
