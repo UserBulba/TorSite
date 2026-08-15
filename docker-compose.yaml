@@ -50,7 +50,7 @@ x-tor-logging: &tor-logging
 
 services:
   gluetun:
-    image: ghcr.io/qdm12/gluetun:v3.40.0
+    image: ghcr.io/qdm12/gluetun:v3.41.3
     container_name: gluetun
     profiles:
       - backend
@@ -60,6 +60,9 @@ services:
       - ALL
     cap_add:
       - NET_ADMIN
+      # Raw socket for the healthcheck's ICMP probe (internal/healthcheck/icmp/listen.go
+      # opens ip4:icmp). Without it gluetun silently falls back to DNS probing forever.
+      - NET_RAW
       - DAC_OVERRIDE
       - CHOWN
     security_opt:
@@ -74,6 +77,19 @@ services:
       - WIREGUARD_PRIVATE_KEY=${MULLVAD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${MULLVAD_ADDRESSES}
       - SERVER_COUNTRIES=${MULLVAD_SERVER_COUNTRIES:-Sweden}
+      # Keeps the UDP NAT mapping alive; gluetun defaults to 0 (off), Mullvad ships 25.
+      - WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL=${WIREGUARD_KEEPALIVE:-25s}
+      # Liveness probe every 60s: ICMP echo to 1.1.1.1/8.8.8.8 through the tunnel.
+      # No DNS, no TLS — the cleanest tunnel signal available. Needs NET_RAW above.
+      - HEALTH_SMALL_CHECK_TYPE=icmp
+      # HEALTH_TARGET_ADDRESSES is left at its default (cloudflare.com:443,github.com:443).
+      # That check runs only every 5min and does a TLS handshake with ServerName set from
+      # the address, so it needs real hostnames — an IP literal there is the wrong shape.
+      # Nothing but gluetun itself resolves through this DNS server; the blocklists
+      # buy no protection here and their daily refresh stops/starts the resolver.
+      - BLOCK_MALICIOUS=off
+      - BLOCK_ADS=off
+      - BLOCK_SURVEILLANCE=off
       - HTTPPROXY=on
       - HTTPPROXY_PORT=8888
     networks:
